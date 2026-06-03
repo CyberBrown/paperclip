@@ -14,6 +14,7 @@ import { buildTools } from "./tools/index.js";
 import { resolveModel } from "./model.js";
 import { makeOpenBaoGetApiKey, openBaoConfigFromEnv } from "./openbao.js";
 import { loadMessages, saveMessages } from "./session.js";
+import { installFetchProxyFromEnv } from "./proxy.js";
 
 const DEFAULT_SYSTEM_PROMPT = `You are a Paperclip agent running in a sandboxed environment.
 
@@ -35,6 +36,10 @@ async function main(): Promise<void> {
     process.stderr.write("pi-runner: empty prompt on stdin\n");
     process.exit(2);
   }
+
+  // Route the LLM fetch through the egress proxy (DeepSeek's openai-completions
+  // provider uses native fetch, which ignores HTTPS_PROXY without this).
+  installFetchProxyFromEnv();
 
   const workspaceRoot = process.env.WORKSPACE_ROOT?.trim() || process.cwd();
   const sessionFile = process.env.SESSION_FILE?.trim() || undefined;

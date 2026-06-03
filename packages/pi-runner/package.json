@@ -45,7 +45,8 @@
   "dependencies": {
     "@earendil-works/pi-agent-core": "^0.78.0",
     "@earendil-works/pi-ai": "^0.78.0",
-    "@paperclipai/adapter-utils": "workspace:*"
+    "@paperclipai/adapter-utils": "workspace:*",
+    "undici": "^6.21.0"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
