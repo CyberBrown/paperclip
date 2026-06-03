@@ -5,6 +5,12 @@
 > detailed record is `notes-infra/paperclip-sandbox-rebuild.md` on Forgejo
 > (git.voltagelabs.net). Most state lives on the **server (CT 134)**, not in this
 > repo — this branch only holds the `packages/pi-runner` package + registry wiring.
+>
+> **Tracking:** the pending work below is now in OpenProject under
+> **Infrastructure → Paperclip Sandbox Platform** (project #74,
+> `https://openproject.voltagelabs.net/projects/paperclip-sandbox-platform`).
+> WP numbers are noted inline. (WP #506 in *Bridge × CC-Dispatch* covers the
+> separate metis cred/invite *access* turn, not this rebuild.)
 
 ## Current state
 Paperclip is **fully deployed and running** on Helsinki **CT 134 `paperclip-helsinki`**
@@ -34,21 +40,21 @@ Build is green (`pi-runner` + `server` typecheck clean). Branch pushed to fork
 `CyberBrown/paperclip` (no upstream PR — carries internal infra detail).
 
 ## Next steps
-1. **Promotion automation** — build a job that opens a PR `agency-agents-upstream → agency-agents`
+1. **Promotion automation** (WP #515) — build a job that opens a PR `agency-agents-upstream → agency-agents`
    when they diverge, so the security agent (Chris is setting one up) has a daily review
    queue and chris/metis have something to approve. Without it the approved pool stays frozen.
-2. **Approve/reject the 2 pending hires** (in Solamp UI): HR recommends **APPROVE
+2. **Approve/reject the 2 pending hires** (WP #516, in Solamp UI): HR recommends **APPROVE
    `forge-image-port`**, **REJECT `easypost-secret-fix`** (the latter needs a live secret an
    agent can't set — wrong fit for the jail).
-3. **Import all persona data per worker** — `propose_agent` currently imports the persona
+3. **Import all persona data per worker** (WP #517) — `propose_agent` currently imports the persona
    body+name only; extend it to map frontmatter (description/vibe/emoji → title/capabilities/icon).
    Needs a runner rebuild.
-4. **Skills/capabilities catalog** — `desiredSkills` is a *registered* company catalog (rejects
+4. **Skills/capabilities catalog** (WP #518) — `desiredSkills` is a *registered* company catalog (rejects
    free-text). Build the curated-skills system: register approved skills, make them assignable,
    have HR/manager manage grants. This is the real "capabilities" knob.
-5. **Fire the team kickoff** — proposed task set (Lead→architecture map, CEO→priorities, QA→risk
+5. **Fire the team kickoff** (WP #510) — proposed task set (Lead→architecture map, CEO→priorities, QA→risk
    review, Frontend→storefront audit, Engineer→app READMEs) is ready but **not yet run**.
-6. **Cleanup (batch into next rebuild)**: rename `PI_REF_*`/`PI_FORGEJO_API` env vars to
+6. **Cleanup (batch into next rebuild)** (WP #511): rename `PI_REF_*`/`PI_FORGEJO_API` env vars to
    non-sensitive names (drops a helper-secret hack); add `modelProfiles` to the adapter; make
    `propose_agent` set title/capabilities/reportsTo on hires; an autonomous-HR `review_hires`
    tool; slim the server image (drops unused claude-code/codex/opencode CLIs → faster ship).
@@ -69,13 +75,14 @@ Build is green (`pi-runner` + `server` typecheck clean). Branch pushed to fork
 
 ## Known debt / open questions
 - Runner keeps **session memory** → agents sometimes say "already done" and lean on memory; a
-  fresh-session-per-issue option is a 1-line change (batch into next rebuild).
-- New CEO proposals don't auto-get `title`/`capabilities`/`reportsTo` (propose tool doesn't set them).
+  fresh-session-per-issue option is a 1-line change (WP #512, batch into next rebuild).
+- New CEO proposals don't auto-get `title`/`capabilities`/`reportsTo` (propose tool doesn't set them;
+  folded into WP #517).
 - Throwaway **"Voltage Labs" test company** + jail-agent still exist; Solamp test issues (SOL-1..11)
-  are cancelled, not deleted.
-- The CT trusts OpenBao self-signed TLS via `-k`; ship the CA eventually.
+  are cancelled, not deleted (WP #514).
+- The CT trusts OpenBao self-signed TLS via `-k`; ship the CA eventually (WP #513).
 - Lateral L2 reach from the CT to other `10.10.10.x` CTs isn't filtered (auth-gated services; a
-  bridge/VLAN isolation is the hardening follow-up).
+  bridge/VLAN isolation is the hardening follow-up) (WP #519).
 
 ## In-flight remote state
 - **CT 134**: `docker compose` (db + server) running; UI proxy `paperclip-ui-proxy.service`,
