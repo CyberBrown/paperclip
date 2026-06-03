@@ -15,7 +15,11 @@ import { asString, parseObject } from "@paperclipai/adapter-utils/server-utils";
 import type { AdapterExecutionContext, AdapterExecutionResult } from "@paperclipai/adapter-utils";
 import { DEFAULT_MODEL_ID } from "./models.js";
 
-const RUNNER_ENTRY = fileURLToPath(new URL("../runner/index.js", import.meta.url));
+// Resolve the built runner from the package root, independent of whether this
+// adapter module was loaded from src/adapter (tsx) or dist/adapter (built):
+// both sit two levels under the package root, where dist/runner/index.js lives.
+const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const RUNNER_ENTRY = path.join(PKG_ROOT, "dist/runner/index.js");
 
 const SECRET_ENV_KEYS = new Set(["VAULT_SECRET_ID", "FORGEJO_SANDBOX_REMOTE", "VAULT_ROLE_ID"]);
 
