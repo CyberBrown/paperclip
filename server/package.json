@@ -56,6 +56,7 @@
     "@paperclipai/adapter-pi-local": "workspace:*",
     "@paperclipai/adapter-utils": "workspace:*",
     "@paperclipai/db": "workspace:*",
+    "@paperclipai/pi-runner": "workspace:*",
     "@paperclipai/plugin-sdk": "workspace:*",
     "@paperclipai/shared": "workspace:*",
     "ajv": "^8.18.0",
