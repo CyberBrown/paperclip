@@ -1,6 +1,6 @@
 # pi-agent-core adapter — design & scope
 
-Status: **scoped, validated against source, ready to build** (2026-06-02).
+Status: **BUILT & VERIFIED end-to-end in the jail** (2026-06-02). See "Build result" below.
 Context: the Paperclip sandbox-first rebuild. This adapter is the **inner wall** — agents
 get *only the tools we define*, no shell. Outer wall (egress + no live creds) is already
 built and verified (see `notes-infra/paperclip-sandbox-rebuild.md`, Phase 1).
@@ -105,3 +105,43 @@ Then: register in `server/src/adapters/registry.ts`; deploy Paperclip in CT 134;
 agent on `pi_agent_core`; run a real task that lands a commit in the Forgejo sandbox — through
 the wall. End-to-end proof = the gate for Phase 2.
 ```
+
+---
+
+## Build result (2026-06-02)
+
+Implemented `packages/pi-runner` and registered `pi_agent_core` in the server
+(`registry.ts` + `BUILTIN_ADAPTER_TYPES`). Typechecks + builds clean.
+
+**Runtime fix discovered during the jail test:** DeepSeek's `openai-completions`
+provider issues requests via Node's native `fetch` (undici), and pi-ai only wires
+its proxy agent for some providers (Bedrock) — so `HTTPS_PROXY` was ignored and
+DeepSeek calls went direct, which the egress wall drops (request timeout). Fixed
+by setting a global undici `ProxyAgent` dispatcher (`src/runner/proxy.ts`); OpenBao
+reads use `node:https` and stay direct.
+
+**End-to-end gate — PASSED inside CT 134, under the egress wall:**
+- Key fetched from **OpenBao via AppRole at runtime** (nothing on disk).
+- DeepSeek inference through the **host domain proxy** (direct egress stays blocked).
+- Curated tools only (`write`/`edit`/`read`/`git_commit`/`git_push`) — no shell.
+- Agent pushed real commits to `paperclip-agent/sandbox` branch `agent/work`
+  (`03d72160` + a follow-up), via the **host forwarder**. Multi-turn continuity
+  (read → edit → commit → push on its own prior commit) works.
+
+### Deploy mechanics (build-outside, ship-in)
+
+The jail can't install from the internet, so the runner ships as a Docker image:
+`pnpm --filter @paperclipai/pi-runner --prod deploy` → `node:20-slim` image (git
+included) built on an internet host → `docker save` → `docker load` inside CT 134
+(which already has Docker). The container runs *inside* the CT, so its egress is
+governed by the same host wall (saddr `10.10.10.134`). Env at run time: `VAULT_*`
+(AppRole), `HTTPS_PROXY=http://10.10.10.1:8888`, `NO_PROXY=10.10.10.1,10.10.10.132`
+(so git/OpenBao bypass the proxy), `FORGEJO_SANDBOX_REMOTE` (forwarder URL + token),
+`GIT_PUSH_BRANCH`, `DEEPSEEK_MODEL`.
+
+### Remaining (productization, not the inner-wall gate)
+- Stand up the **full Paperclip server** (Postgres + UI + auth) in CT 134 via the
+  same build-outside/ship-in image flow, and drive a `pi_agent_core` agent through
+  the platform UI (the adapter `execute()` spawns the exact runner proven above).
+- A `getConfigSchema()` for a nicer agent-config UI; wire `${PAPERCLIP_SECRET_*}`
+  for `VAULT_SECRET_ID` / `FORGEJO_SANDBOX_REMOTE` through the platform secret store.
