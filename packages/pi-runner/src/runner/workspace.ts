@@ -43,8 +43,11 @@ export async function ensureWorkspaceRepo(
   workspaceRoot: string,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
-  const repo = env.PI_WORKSPACE_REPO?.trim();
-  if (!repo) return "no PI_WORKSPACE_REPO; using workspace as-is";
+  // Prefer an explicit PI_WORKSPACE_REPO; otherwise fall back to the agent's
+  // sandbox remote (clone source == push target for these agents), so existing
+  // agents get auto-clone with no extra config.
+  const repo = env.PI_WORKSPACE_REPO?.trim() || env.FORGEJO_SANDBOX_REMOTE?.trim();
+  if (!repo) return "no workspace repo configured; using workspace as-is";
   if (await isGitRepo(workspaceRoot)) return "workspace already a git repo; skip clone";
   if (!(await isEmptyish(workspaceRoot))) return "workspace non-empty but not git; skip clone";
 
