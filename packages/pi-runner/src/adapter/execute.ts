@@ -66,6 +66,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   env.WORKSPACE_ROOT = cwd;
   env.SESSION_FILE = sessionFile;
   env.DEEPSEEK_MODEL = modelId;
+  // Local agent identity (only present when supportsLocalAgentJwt) — lets a
+  // manager agent call the Paperclip API as itself (e.g. propose teammates).
+  env.PI_COMPANY_ID = agent.companyId;
+  if (ctx.authToken) env.PAPERCLIP_API_KEY = ctx.authToken;
 
   if (onMeta) {
     await onMeta({

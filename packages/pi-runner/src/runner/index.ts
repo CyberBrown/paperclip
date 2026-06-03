@@ -15,6 +15,7 @@ import { resolveModel } from "./model.js";
 import { makeOpenBaoGetApiKey, openBaoConfigFromEnv } from "./openbao.js";
 import { loadMessages, saveMessages } from "./session.js";
 import { installFetchProxyFromEnv } from "./proxy.js";
+import { ensureWorkspaceRepo } from "./workspace.js";
 
 const DEFAULT_SYSTEM_PROMPT = `You are a Paperclip agent running in a sandboxed environment.
 
@@ -44,6 +45,10 @@ async function main(): Promise<void> {
   const workspaceRoot = process.env.WORKSPACE_ROOT?.trim() || process.cwd();
   const sessionFile = process.env.SESSION_FILE?.trim() || undefined;
   const systemPrompt = process.env.PI_SYSTEM_PROMPT?.trim() || DEFAULT_SYSTEM_PROMPT;
+
+  // Ensure the agent has the repo even when the issue isn't filed in a project.
+  const wsStatus = await ensureWorkspaceRepo(workspaceRoot);
+  process.stderr.write(`[workspace] ${wsStatus}\n`);
 
   const baoCfg = openBaoConfigFromEnv();
   const getApiKey = baoCfg ? makeOpenBaoGetApiKey(baoCfg, process.env.PI_PROVIDER?.trim() || "deepseek") : undefined;

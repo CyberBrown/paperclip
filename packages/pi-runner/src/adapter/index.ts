@@ -30,6 +30,10 @@ export const piAgentCoreAdapter: ServerAdapterModule = {
   execute,
   testEnvironment,
   models: PI_MODELS,
+  // Issue a short-lived local agent JWT (PAPERCLIP_API_KEY) so a manager agent
+  // can act as itself against the Paperclip API (e.g. propose teammates). Most
+  // agents never use it; it's scoped to the agent's own company.
+  supportsLocalAgentJwt: true,
   agentConfigurationDoc: AGENT_CONFIG_DOC,
 };
 
